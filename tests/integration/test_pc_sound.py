@@ -1,8 +1,14 @@
 
 import unittest
 
+from modules.concrete.pc_sound import *
 
-class TestWhole(unittest.TestCase):
+
+class TestPcSound(unittest.TestCase):
+    """
+    test cases include:
+    - xxx
+    """
     def setUp(self):
         pass
 
