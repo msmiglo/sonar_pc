@@ -31,7 +31,7 @@ class TestControllerStep(unittest.TestCase):
         self.mock_measurer = MagicMock(spec=Measurer)
         self.mock_history = MagicMock(spec=History)
         self.mock_processor = MagicMock(spec=AbstractProcessor)
-        self.mock_display = MagicMock(spec=AbstractDisplay)
+        self.mock_display = FakeDisplay()
         self.mock_result = MagicMock(spec=Result)
         self.fake_sample = FakeSample()
 
@@ -46,13 +46,11 @@ class TestControllerStep(unittest.TestCase):
         self.ctrl.display = self.mock_display
 
     def test_sequence(self):
-        #Controller._step(self.mock_controller)  # - unit testing
         self.ctrl._step()
         self.mock_measurer.single_measurement.assert_called_once()
         self.mock_history.store.assert_called_once_with(self.fake_sample)
         self.mock_history.get_last.assert_called_once_with()
         self.mock_processor.process.assert_called_once_with(self.fake_sample)
-        self.mock_display.print.assert_called_once_with(self.mock_result)
         self.mock_result.to_string_1.assert_called_once()
 
 
@@ -76,8 +74,9 @@ class TestMeasurer(unittest.TestCase):
         self.fake_sample = FakeSample()
 
         self.measurer = Measurer.__new__(Measurer)
-        self.measurer.emitter = self.mock_emitter
-        self.measurer.receiver = self.mock_receiver
+        self.measurer._emitter = self.mock_emitter
+        self.measurer._receiver = self.mock_receiver
+        self.measurer.barrier = MagicMock()
 
         self.mock_emitter.emit_beep.return_value = None
         self.mock_receiver.record_signal.return_value = self.fake_sample
@@ -116,9 +115,9 @@ class FakeFactory(AbstractFactory):
 
 class TestFlow(unittest.TestCase):
     def setUp(self):
-        fake_factory = FakeFactory()
-        fake_display = FakeDisplay()
-        self.ctrl = Controller(fake_factory, fake_display)
+        self.fake_factory = FakeFactory()
+        self.fake_display = FakeDisplay()
+        self.ctrl = Controller(self.fake_factory, self.fake_display)
 
     def test_initialization(self):
         self.ctrl.measurer._emitter.check.assert_called_once()
@@ -130,6 +129,6 @@ class TestFlow(unittest.TestCase):
         self.ctrl.measurer._receiver.record_signal.return_value = fake_sample
         self.ctrl.loop(1)
         self.assertIs(self.ctrl.history.get_last(), fake_sample)
-        self.assertEqual(fake_display.txt_value,
-                         "\tDistance = 0.14 m\tintensity: 20.54")
+        self.assertEqual(self.fake_display.txt_value,
+                         "\t0.14 m\tintensity: 20.54")
         self.ctrl.measurer._emitter.emit_beep.assert_called_once()

@@ -9,4 +9,11 @@ class TextDisplay(AbstractDisplay):
         self.config = config
 
     def print(self, result):
-        print(results)
+        txt = result.to_string_1()
+        txt = (
+            f"Distance measured:\n"
+            f"{txt}\n"
+            f"\n"
+            f"noise background: {result.metadata['noise']}"
+        )
+        print(txt)
