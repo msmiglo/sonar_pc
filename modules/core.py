@@ -8,12 +8,18 @@ from modules.abstract.abstract_factory import (
 )
 
 
+RELIABILITY_THRESHOLD = 2.5
+
+
 class History:
-    def __init__(self):
+    def __init__(self, limit=None):
         self.history = []
+        self.limit = limit
 
     def store(self, sample: AbstractSample):
         self.history.append(sample)
+        if self.limit is not None and len(self.history) > self.limit:
+            self.history.pop(0)
 
     def get(self, i) -> AbstractSample:
         return self.history[i]
@@ -23,23 +29,34 @@ class History:
 
 
 class Result:
-    def __init__(self, distance: float, metadata: dict):
-        self.distance = distance
-        self.metadata = metadata
+    def __init__(self, peaks, noise, snr):
+        peaks = sorted(peaks, key=lambda p: p[0])
+        self.peaks = list(peaks)
+        self.noise = noise
+        self.snr = snr
+        self.error = None
 
-    def to_string_1(self) -> str:
-        intensity = self.metadata["intensity"]
-        txt = f"{self.distance:.02f} m\tintensity: {intensity:.02f}"
-        if intensity <= 2:
-            txt = f"[{txt}] - not reliable"
-        txt = "\t" + txt
-        return txt
+    @classmethod
+    def from_error(cls, error, **kwargs):
+        init_args = dict(peaks=[(0, 0)], noise=0, snr=0)
+        init_args.update(kwargs)
+        result = cls(**init_args)
+        error_txt = f"{type(error).__name__}: {error}"
+        result.error = error_txt
+        return result
 
-    def to_string_2(self) -> str:
-        pass
-
-    def to_string_3(self) -> str:
-        return "lalalala"
+    def to_dict(self):
+        peaks = [{
+            "distance": p[0],
+            "intensity": p[1],
+            "reliable": p[1] > RELIABILITY_THRESHOLD
+        } for p in self.peaks]
+        return {
+            "peaks": peaks,
+            "noise": self.noise,
+            "snr": self.snr,
+            "error": self.error,
+        }
 
 
 class Measurer:

@@ -31,43 +31,95 @@ class TestHistory(unittest.TestCase):
         self.assertEqual(self.history.get(0), self.mock_sample)
 
     def test_get_last(self):
-        sample2 = MagicMock()
         self.history.store(self.mock_sample)
-        self.history.store(sample2)
-        self.assertEqual(self.history.get_last(), sample2)
+        self.history.store(self.mock_sample2)
+        self.assertEqual(self.history.get_last(), self.mock_sample2)
+
+    def test_storage_limit(self):
+        history = History(limit=5)
+        history.store(self.mock_sample)
+        for _ in range(4):
+            history.store(self.mock_sample2)
+        self.assertEqual(len(history.history), 5)
+        self.assertEqual(history.get(0), self.mock_sample)
+        history.store(self.mock_sample)
+        self.assertEqual(len(history.history), 5)
+        self.assertEqual(history.get(0), self.mock_sample2)
+        self.assertEqual(history.get_last(), self.mock_sample)
 
 
 class TestResult(unittest.TestCase):
     def setUp(self):
-        self.data_1 = (1/7, {"intensity": 25.25655789})
-        self.data_2 = (6/7, {"intensity": 1.25655789})
+        self.peak_1 = (1/7, 25.25655789)
+        self.peak_2 = (6/7, 1.25655789)
+        self.peak_3 = (1.8, 3)
+        self.metadata = {"snr": 55, "noise": 871}
+        self.error_output = "ZeroDivisionError: test error"
 
-    def test_creation_wrong_data(self):
+    def test_creation_empty(self):
         with self.assertRaises(TypeError):
             Result()
 
-    def test_creation_ok(self):
-        res = Result(*self.data_1)
-        self.assertEqual(res.distance, self.data_1[0])
-        self.assertIn("intensity", res.metadata)
+    def test_creation_no_data(self):
+        with self.assertRaises(TypeError):
+            r = Result(**self.metadata)
 
-    def test_str_1(self):
-        res = Result(*self.data_1)
-        txt = res.to_string_1()
-        expected = "\t0.14 m\tintensity: 25.26"
-        self.assertEqual(txt, expected)
+    def test_creation_ok(self):
+        peaks = [self.peak_1]
+        r = Result(peaks, **self.metadata)
+        self.assertEqual(len(r.peaks), 1)
+        self.assertAlmostEqual(r.peaks[0][0], 1/7)
+        self.assertEqual(r.snr, self.metadata["snr"])
+
+    @staticmethod
+    def _make_error():
+        try:
+            raise ZeroDivisionError("test error")
+        except Exception as e:
+            return e
+
+    def test_from_error(self):
+        e = self._make_error()
+        r = Result.from_error(e)
+        self.assertIsNotNone(r.error)
+        self.assertEqual(len(r.peaks), 1)
+        self.assertEqual(r.snr, 0.)
+        self.assertEqual(r.noise, 0.)
+        self.assertEqual(r.error, self.error_output)
+
+    def test_no_peaks(self):
+        peaks = []
+        r = Result(peaks, **self.metadata)
+        expected = {"peaks": [], "error": None}
+        expected.update(self.metadata)
+        self.assertEqual(r.to_dict(), expected)
+        self.assertIsNone(r.error)
+
+    def test_one_peak(self):
+        peaks = [self.peak_1]
+        r = Result(peaks, **self.metadata)
+        expected = {
+            "peaks": [
+                {"distance": 1/7, "intensity": 25.25655789, "reliable": True}
+            ],
+            "error": None
+        }
+        expected.update(self.metadata)
+        self.assertEqual(r.to_dict(), expected)
+        self.assertIsNone(r.error)
 
     def test_not_reliable(self):
-        res = Result(*self.data_2)
-        txt = res.to_string_1()
-        expected = "\t[0.86 m\tintensity: 1.26] - not reliable"
-        self.assertEqual(txt, expected)
+        peaks = [self.peak_2]
+        r = Result(peaks, **self.metadata)
+        data = r.to_dict()
+        self.assertEqual(data["peaks"][0]["reliable"], False)
+        self.assertIsNone(r.error)
 
-    def test_str_3(self):
-        res = Result(*self.data_1)
-        txt = res.to_string_3()
-        expected = "lalalala"
-        self.assertEqual(txt, expected)
+    def test_peaks_sorting(self):
+        peaks = [self.peak_3, self.peak_1, self.peak_2]
+        r = Result(peaks, **self.metadata)
+        self.assertListEqual(r.peaks, [self.peak_1, self.peak_2, self.peak_3])
+        self.assertIsNone(r.error)
 
 
 class TestMeasurer(unittest.TestCase):
@@ -75,7 +127,7 @@ class TestMeasurer(unittest.TestCase):
         self.mock_factory = MagicMock(spec=AbstractFactory)
         self.mock_emitter = MagicMock(spec=AbstractEmitter)
         self.mock_receiver = MagicMock(spec=AbstractReceiver)
-        
+
         self.mock_factory.create_emitter.return_value = self.mock_emitter
         self.mock_factory.create_receiver.return_value = self.mock_receiver
         self.measurer = Measurer(self.mock_factory)

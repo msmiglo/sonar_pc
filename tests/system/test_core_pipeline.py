@@ -84,7 +84,7 @@ class FakeProcessor(AbstractProcessor):
         pass
 
     def process(self, sample):
-        return Result(10, {"intensity": 5})
+        return Result([(10, 5)], 897.1, 42)
 
 
 class FakeFactory(AbstractFactory, _LogginBase):
@@ -135,8 +135,7 @@ class TestMain(unittest.TestCase):
             "recording started...", "playing started...",
             "playing stopped.", "recording stopped.", "result printed."
         ]
-        '''for log in self.logger.log_record:
-            print(log)'''
+        #for log in self.logger.log_record: print(log)
         self.assertListEqual(logging_texts, expected)
 
 

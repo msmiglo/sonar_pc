@@ -17,13 +17,12 @@ class FakeSample(AbstractSample):
 
 class FakeDisplay(AbstractSample):
     def __init__(self):
-        self.txt_value = None
+        self.store = None
 
     def print(self, result):
-        txt = result.to_string_1()
-        self.txt_value = txt
-        txt = result.to_string_3()
-        return txt
+        result_dict = result.to_dict()
+        self.store = result_dict
+        return result_dict
 
 
 class TestControllerStep(unittest.TestCase):
@@ -51,7 +50,7 @@ class TestControllerStep(unittest.TestCase):
         self.mock_history.store.assert_called_once_with(self.fake_sample)
         self.mock_history.get_last.assert_called_once_with()
         self.mock_processor.process.assert_called_once_with(self.fake_sample)
-        self.mock_result.to_string_1.assert_called_once()
+        self.mock_result.to_dict.assert_called_once()
 
 
 class TestHistory(unittest.TestCase):
@@ -91,19 +90,16 @@ class TestMeasurer(unittest.TestCase):
 class TestDisplay(unittest.TestCase):
     def test_result(self):
         mock_result = MagicMock(spec=Result)
-        mock_result.to_string_3.return_value = "1410"
-        # result = Result(distance=1/7, metadata={"intensity": 20.5444}) - to unit
+        mock_result.to_dict.return_value = "1410"
         fake_display = FakeDisplay()
         result = fake_display.print(mock_result)
-        mock_result.to_string_1.assert_called_once_with()
-        mock_result.to_string_2.assert_not_called()
-        mock_result.to_string_3.assert_called_once_with()
+        mock_result.to_dict.assert_called_once_with()
         self.assertEqual(result, "1410")
 
 
 class FakeProcessor(AbstractProcessor):
     def process(self, sample):
-        return Result(distance=1/7, metadata={"intensity": 20.5444})
+        return Result(peaks=[(1/7, 20.5444)], noise=123, snr=40)
 
 
 class FakeFactory(AbstractFactory):
@@ -129,6 +125,8 @@ class TestFlow(unittest.TestCase):
         self.ctrl.measurer._receiver.record_signal.return_value = fake_sample
         self.ctrl.loop(1)
         self.assertIs(self.ctrl.history.get_last(), fake_sample)
-        self.assertEqual(self.fake_display.txt_value,
-                         "\t0.14 m\tintensity: 20.54")
+        self.assertSetEqual(
+            set(self.fake_display.store),
+            {"peaks", "noise", "snr", "error"}
+        )
         self.ctrl.measurer._emitter.emit_beep.assert_called_once()
