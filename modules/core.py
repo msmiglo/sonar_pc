@@ -29,11 +29,20 @@ class History:
 
 
 class Result:
-    def __init__(self, peaks, noise, snr):
+    """
+    Glossary:
+    - main pulse - the original signal emitted by emitter
+    - peaks - secondary peaks in the data - possibly reflections
+    - noise - median value of wavelet transform matrix
+    - snr - signal to noise ratio, snr = [main pulse height] / [noise]
+    - intensity - reliability of signal depending on processing method
+    """
+    def __init__(self, peaks, noise, snr, **metadata):
         peaks = sorted(peaks, key=lambda p: p[0])
         self.peaks = list(peaks)
         self.noise = noise
         self.snr = snr
+        self.metadata = metadata
         self.error = None
 
     @classmethod
@@ -49,7 +58,7 @@ class Result:
         peaks = [{
             "distance": p[0],
             "intensity": p[1],
-            "reliable": p[1] > RELIABILITY_THRESHOLD
+            "reliable": bool(p[1] > RELIABILITY_THRESHOLD)
         } for p in self.peaks]
         return {
             "peaks": peaks,

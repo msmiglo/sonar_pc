@@ -26,7 +26,6 @@ class TestTextDisplay(unittest.TestCase):
         }
         mock_peak.update(data)
         return mock_peak
-        
 
     @staticmethod
     def _make_mock_result(**expected_dict):

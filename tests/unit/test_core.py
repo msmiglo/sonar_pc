@@ -2,6 +2,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+import numpy as np
+
 from modules.core import Controller, History, Measurer, Result
 from modules.abstract.abstract_factory import (
     AbstractEmitter, AbstractFactory, AbstractReceiver, AbstractSample)
@@ -53,6 +55,7 @@ class TestResult(unittest.TestCase):
         self.peak_1 = (1/7, 25.25655789)
         self.peak_2 = (6/7, 1.25655789)
         self.peak_3 = (1.8, 3)
+        self.peak_numpy = (np.float64(1.8), np.float64(3))
         self.metadata = {"snr": 55, "noise": 871}
         self.error_output = "ZeroDivisionError: test error"
 
@@ -70,6 +73,12 @@ class TestResult(unittest.TestCase):
         self.assertEqual(len(r.peaks), 1)
         self.assertAlmostEqual(r.peaks[0][0], 1/7)
         self.assertEqual(r.snr, self.metadata["snr"])
+        self.assertEqual(r.metadata, {})
+
+    def test_init_with_other_metadata(self):
+        self.metadata["other"] = "other"
+        r = Result([], **self.metadata)
+        self.assertEqual(r.metadata, {"other": "other"})
 
     @staticmethod
     def _make_error():
@@ -120,6 +129,11 @@ class TestResult(unittest.TestCase):
         r = Result(peaks, **self.metadata)
         self.assertListEqual(r.peaks, [self.peak_1, self.peak_2, self.peak_3])
         self.assertIsNone(r.error)
+
+    def test_reliable_bool(self):
+        peaks = [self.peak_numpy]
+        res = Result(peaks, **self.metadata).to_dict()
+        self.assertIsInstance(res["peaks"][0]["reliable"], bool)
 
 
 class TestMeasurer(unittest.TestCase):

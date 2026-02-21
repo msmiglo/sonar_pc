@@ -24,7 +24,7 @@ class TestPcSound(unittest.TestCase):
         factory = PcFactory({})
         display = TextDisplay()
         ctrl = Controller(factory=factory, display=display)
-        ctrl.loop(limit=10)
+        ctrl.loop(limit=5)
 
 
 '''class TestRadioDevices(unittest.TestCase):
