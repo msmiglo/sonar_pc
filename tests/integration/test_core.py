@@ -127,6 +127,6 @@ class TestFlow(unittest.TestCase):
         self.assertIs(self.ctrl.history.get_last(), fake_sample)
         self.assertSetEqual(
             set(self.fake_display.store),
-            {"peaks", "noise", "snr", "error"}
+            {"peaks", "noise", "snr", "error", "metadata"}
         )
         self.ctrl.measurer._emitter.emit_beep.assert_called_once()

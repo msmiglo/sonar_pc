@@ -11,9 +11,9 @@ from modules.concrete.pc_sound import (
     PcEmitter, PcFactory, PcProcessor, PcReceiver, PcSample, _Series, _Stripe)
 from modules.concrete.pc_sound import (
     ProcessorEmptyDataError,
-    ProcessorNoInputError,
     ProcessorNoisyDataError,
     ProcessorNoPeaksDetectedError,
+    ProcessorNoSoundError,
     ProcessorWrongFrequencyError
 )
 from modules.core import Result
@@ -516,7 +516,7 @@ class TestPcProcessor(unittest.TestCase):
     def test_validate_sample_empty_error(self):
         mock_sample = MagicMock()
         mock_sample.__len__.return_value = 0
-        with self.assertRaises(ProcessorNoInputError):
+        with self.assertRaises(ProcessorEmptyDataError):
             PcProcessor._validate_sample(self.mock_proc, mock_sample)
 
     def test_validate_sample_flat_signal_error(self):
@@ -524,7 +524,7 @@ class TestPcProcessor(unittest.TestCase):
         mock_sample.__len__.return_value = 10
         mock_sample.to_values.return_value = 0.01 * np.ones(10)
 
-        with self.assertRaises(ProcessorEmptyDataError):
+        with self.assertRaises(ProcessorNoSoundError):
             PcProcessor._validate_sample(self.mock_proc, mock_sample)
 
     @patch('modules.concrete.pc_sound.np.fft.fftfreq')

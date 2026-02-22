@@ -24,7 +24,7 @@ FORMAT = pyaudio.paInt16
 
 PLAY_DELAY_SECONDS = 19 / 1000  # [s]
 PLAYING_DURATION_SECONDS = 100 / 1000  # [s]
-RECORDING_MARGIN_SECONDS = 240 / 1000  # [s]
+RECORDING_MARGIN_SECONDS = 340 / 1000  # [s]
 SIGNAL_WIDTH_SECONDS = 2.5 / 1000  # [s]
 CARRIER_FREQUENCY = 3310  # [Hz]
 
@@ -40,8 +40,8 @@ SNR_THRESHOLD = 10
 
 class _BaseProcessorError(RuntimeError): pass
 
-class ProcessorNoInputError(_BaseProcessorError): pass
 class ProcessorEmptyDataError(_BaseProcessorError): pass
+class ProcessorNoSoundError(_BaseProcessorError): pass
 class ProcessorWrongFrequencyError(_BaseProcessorError): pass
 class ProcessorNoisyDataError(_BaseProcessorError): pass
 class ProcessorNoPeaksDetectedError(_BaseProcessorError): pass
@@ -181,9 +181,6 @@ class PcEmitter(AbstractEmitter):
         self.config = config
         self.pa = config["pyaudio"]
 
-    def __del__(self):
-        print('destructor PcEmitter')
-
     def check(self):
         self.pa.get_default_output_device_info()
         stream = self.pa.open(
@@ -224,9 +221,6 @@ class PcReceiver(AbstractReceiver):
     def __init__(self, config):
         self.config = config
         self.pa = config["pyaudio"]
-
-    def __del__(self):
-        print('destructor PcReceiver')
 
     def check(self):
         self.pa.get_default_input_device_info()
@@ -338,11 +332,11 @@ class PcProcessor(AbstractProcessor):
     def _validate_sample(self, sample):
         n = len(sample)
         if len(sample) == 0:
-            raise ProcessorNoInputError("sample is empty")
+            raise ProcessorEmptyDataError("sample is empty")
 
         values = sample.to_values()
         if np.amax(values) - np.amin(values) < EPSILON:
-            raise ProcessorEmptyDataError(
+            raise ProcessorNoSoundError(
                 "signal is flat - no sound found")
 
         amps = np.fft.fft(values)
@@ -421,10 +415,6 @@ class PcProcessor(AbstractProcessor):
             # report error
             result = Result.from_error(e, **kwargs)
 
-        # TODO
-        print('===================================')
-        print(result.metadata, flush=True)
-        print()
         return result
 
 
@@ -435,7 +425,6 @@ class PcFactory(AbstractFactory):
 
     def __del__(self):
         self.pa.terminate()
-        print('destructor PcFactory')
 
     def create_emitter(self) -> PcEmitter:
         return PcEmitter({"pyaudio": self.pa})

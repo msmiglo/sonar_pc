@@ -99,7 +99,7 @@ class TestResult(unittest.TestCase):
     def test_no_peaks(self):
         peaks = []
         r = Result(peaks, **self.metadata)
-        expected = {"peaks": [], "error": None}
+        expected = {"peaks": [], "metadata": {}, "error": None}
         expected.update(self.metadata)
         self.assertEqual(r.to_dict(), expected)
         self.assertIsNone(r.error)
@@ -111,6 +111,7 @@ class TestResult(unittest.TestCase):
             "peaks": [
                 {"distance": 1/7, "intensity": 25.25655789, "reliable": True}
             ],
+            "metadata": {},
             "error": None
         }
         expected.update(self.metadata)

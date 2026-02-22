@@ -3,11 +3,14 @@ from modules.abstract.abstract_display import AbstractDisplay
 
 
 TEMPLATE = \
-"""Distance:
+"""=========================
+Distance:
 {peaks}
 
 background noise: {noise:.02f}
-signal-to-noise ratio: {snr:.01f}{error}"""
+signal-to-noise ratio: {snr:.01f}{error}
+
+{metadata}"""
 PEAK_TEMPLATE = "{distance:.02f} m\tintensity: {intensity:.02f}"
 
 
@@ -49,5 +52,6 @@ class TextDisplay(AbstractDisplay):
 
         # print
         txt = TEMPLATE.format(peaks=peaks_txt, noise=data_dict["noise"],
-                              snr=data_dict["snr"], error=error_txt)
+                              snr=data_dict["snr"], error=error_txt,
+                              metadata=data_dict["metadata"])
         print(txt, flush=True)

@@ -65,6 +65,7 @@ class Result:
             "noise": self.noise,
             "snr": self.snr,
             "error": self.error,
+            "metadata": self.metadata
         }
 
 

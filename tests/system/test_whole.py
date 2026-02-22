@@ -10,6 +10,7 @@ other devices - which requires the build of test environment.
 
 
 import unittest
+from unittest.mock import patch
 
 from modules.concrete.display import TextDisplay
 from modules.concrete.pc_sound import PcFactory
@@ -20,6 +21,9 @@ class TestPcSound(unittest.TestCase):
     def setUp(self):
         pass
 
+    @patch("modules.concrete.pc_sound.RECORDING_MARGIN_SECONDS", 0.280)
+    @patch("modules.concrete.pc_sound.PLAY_DELAY_SECONDS", 0)
+    @patch("modules.concrete.pc_sound.PLAYING_DURATION_SECONDS", 15 / 1000)
     def test_whole(self):
         factory = PcFactory({})
         display = TextDisplay()
