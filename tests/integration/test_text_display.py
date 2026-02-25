@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import patch
 
-from modules.concrete.display import TextDisplay
+from modules.concrete.text_display import TextDisplay
 from modules.core import Result
 
 

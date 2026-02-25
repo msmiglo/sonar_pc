@@ -10,7 +10,7 @@ other devices - which requires the build of test environment.
 
 from unittest.mock import patch
 
-from modules.concrete.display import TextDisplay
+from modules.concrete.text_display import TextDisplay
 import modules.concrete.pc_sound
 from modules.concrete.pc_sound import PcFactory
 from modules.core import Controller

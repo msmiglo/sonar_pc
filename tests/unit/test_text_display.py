@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from modules.abstract.abstract_display import AbstractDisplay
-from modules.concrete.display import TextDisplay
+from modules.concrete.text_display import TextDisplay
 
 
 class TestTextDisplay(unittest.TestCase):
