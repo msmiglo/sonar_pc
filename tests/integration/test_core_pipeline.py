@@ -61,7 +61,7 @@ class FakeEmitter(AbstractEmitter, _LogginBase):
     def emit_beep(self):
         time.sleep(0.019)
         self.logger.log("playing started...")
-        time.sleep(0.026)
+        time.sleep(0.032)
         self.logger.log("playing stopped.")
 
 
@@ -74,7 +74,7 @@ class FakeReceiver(AbstractReceiver, _LogginBase):
 
     def record_signal(self):
         self.logger.log("recording started...")
-        time.sleep(0.067)
+        time.sleep(0.092)
         self.logger.log("recording stopped.")
         return FakeSample()
 
@@ -135,7 +135,11 @@ class TestMain(unittest.TestCase):
             "recording started...", "playing started...",
             "playing stopped.", "recording stopped.", "result printed."
         ]
-        #for log in self.logger.log_record: print(log)
+        if not logging_texts == expected:
+            for log in self.logger.log_record:
+                print(log)
+                if "result" in log[1]:
+                    print()
         self.assertListEqual(logging_texts, expected)
 
 
