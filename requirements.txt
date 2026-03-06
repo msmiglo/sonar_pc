@@ -1,4 +1,5 @@
 fastapi
+httpx
 numpy==1.21.6
 PyAudio==0.2.13
 requests

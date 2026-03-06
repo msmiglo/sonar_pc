@@ -578,8 +578,8 @@ class TestPcProcessor(unittest.TestCase):
         # assert
         self.assertIs(result, mock_result)
 
-        kwargs = {
-            "f_max": 369., "f_max_stripe": 375., "noise": 5.55, "snr": 0.9}
+        kwargs = {"f_max": 369., "f_max_stripe": 375., "noise": 5.55,
+                  "pulse_time_coord_s": 0.0027891156462585033, "snr": 0.9}
         mock_stripe_cls.from_sample.assert_called_once_with(mock_sample)
         error_arg, error_kwargs = mock_result_cls.from_error.call_args
         self.assertIsInstance(error_arg[0], ProcessorNoisyDataError)
@@ -616,8 +616,8 @@ class TestPcProcessor(unittest.TestCase):
         # assert
         self.assertIs(result, mock_result)
 
-        kwargs = {
-            "f_max": 369., "f_max_stripe": 375., "noise": 0.146, "snr": 445.21}
+        kwargs = {"f_max": 369., "f_max_stripe": 375., "noise": 0.146,
+                  "pulse_time_coord_s": 0.0027891156462585033, "snr": 445.21}
         mock_stripe_cls.from_sample.assert_called_once_with(mock_sample)
         error_arg, error_kwargs = mock_result_cls.from_error.call_args
         self.assertIsInstance(error_arg[0], ProcessorNoPeaksDetectedError)
@@ -661,8 +661,8 @@ class TestPcProcessor(unittest.TestCase):
         # assert
         self.assertIs(result, mock_result)
 
-        kwargs = {
-            "f_max": 369., "f_max_stripe": 375., "noise": 0.146, "snr": 445.21}
+        kwargs = {"f_max": 369., "f_max_stripe": 375., "noise": 0.146,
+                  "pulse_time_coord_s": 0.0027891156462585033, "snr": 445.21}
         mock_stripe_cls.from_sample.assert_called_once_with(mock_sample)
         mock_result_cls.assert_called_once_with('processed_data', **kwargs)
 

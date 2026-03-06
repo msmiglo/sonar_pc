@@ -388,6 +388,7 @@ class PcProcessor(AbstractProcessor):
             # wavelet transform
             stripe = _Stripe.from_sample(sample)
             f_max_stripe, offset = stripe.get_offset()
+            kwargs["pulse_time_coord_s"] = offset / RATE
             series = stripe.squeeze()
             kwargs["f_max_stripe"] = f_max_stripe
 
